@@ -24,10 +24,25 @@ PastyClient = function(target){
   this.Token = {};
   this.target = target;
   this.ssl = (target.ssl === true || target.ssl === false) ? target.ssl : false;
+  this.username = target.username || "";
+  this.password = target.password || "";
+  this.cachedClipboard = {};
 };
 
 PastyClient.prototype.__version = "0.1.0";
 PastyClient.prototype.APIVERSION = "2.1.0"
+
+
+/* 
+ * Get the configured username
+ *
+ * @return {string} [username] the configured username
+ * @api private
+ */
+PastyClient.prototype.getUsername = function() {
+  return this.username;
+}
+
 
 /* 
  * Query the configured REST server for its version.
@@ -39,7 +54,7 @@ PastyClient.prototype.APIVERSION = "2.1.0"
 PastyClient.prototype.getServerVersion = function(callback) {
   target        = this.target;
   target.uri   = "/server/version";
-  PastyClient.prototype.HTTPGet(target, null, function(err, answer) {
+  this.HTTPGet(target, null, function(err, answer) {
     if(err === null) {
       var payload = answer.payload;
       callback(null, payload);
@@ -66,13 +81,13 @@ PastyClient.prototype.listItems = function() {
     authData.user = arguments[0];
     authData.password = arguments[1];
   } else {
-    authData.token = arguments[0];
+    if(typeof(arguments[0]) !== "function") authData.token = arguments[0];
   }
   if(typeof(arguments[arguments.length-1]) !== "function") throw new Error("Last argument is not a callback function.");
   callback = arguments[arguments.length-1];
   target = this.target;
   target.uri = "/clipboard/list.json";
-  PastyClient.prototype.HTTPGet(target, authData, function(err, answer) {
+  this.HTTPGet(target, authData, function(err, answer) {
     if(err === null) {
       if(answer.payload) { // Success, we should have items
         callback(null, answer.payload.items);
@@ -406,7 +421,7 @@ PastyClient.prototype.deleteUser = function(user, passwd, uid, callback) {
 PastyClient.prototype.HTTPGet = function(target, authData, callback) {
   var method = 'GET';
   var data = null;
-  PastyClient.prototype.HTTPRequest(target, method, authData, data, callback);
+  this.HTTPRequest(target, method, authData, data, callback);
 };
 
 
@@ -475,6 +490,10 @@ PastyClient.prototype.HTTPDelete = function(target, authData, callback) {
 PastyClient.prototype.HTTPRequest = function(target, method, authData, data, callback) {
   var userAgent = 'pastyclient-browser '+this.__version;
   if(authData === null) authData = {};
+  if(authData.user === null || authData.user === undefined) { 
+  console.log(this.username);authData.user = this.username;}
+  if(authData.password === null || authData.password === undefined) authData.password = this.password;
+  
   if(authData.user) { // take the authdata and write it into an Basic Authentication object
     var bAuthData = "Basic " + new Buffer(authData.user + ":" + authData.password).toString("base64");
   }
@@ -489,9 +508,9 @@ PastyClient.prototype.HTTPRequest = function(target, method, authData, data, cal
       'cache': false
     }
   }
-
+  //console.log(bAuthData);
   if(bAuthData !== undefined) options.headers.Authorization = bAuthData;
-  if(authData.token !== undefined && authData.token !== null) options.headers["X-Pasty-Token"] = authData.token;
+  //if(authData.token !== undefined && authData.token !== null) options.headers["X-Pasty-Token"] = authData.token;
   if(method == "POST") {
     var postData = JSON.stringify(data);
     options.type = 'POST';
@@ -515,17 +534,14 @@ PastyClient.prototype.HTTPRequest = function(target, method, authData, data, cal
    */
    
   var jqxhr = $.ajax(options)
-    .done(function() {
-      alert( "success" );
+    .done(function(data, textStatus, jqxhr) {
+      callback(null,data);
     })
-    .fail(function() {
-      alert( "error" );
+    .fail(function(jqxhr, err) {
+      alert("error: "+err);
+      console.dir(jqxhr);
+      callback(err, null);
     })
-    .always(function(data, statusCode, jqxhr) {
-      console.dir(data);
-      alert(statusCode);
-      alert( "complete" );
-    });
   
   /*
   var resHandler = function(res) {
@@ -637,7 +653,9 @@ function pastyclient(host, port, options) {
   }
   options           = options || {};
   options.ssl       = options.ssl || false;
-  var tgt = { "host": host, "port": port, "ssl": options.ssl };
+  options.username  = options.username || "";
+  options.password  = options.password || "";
+  var tgt = { "host": host, "port": port, "ssl": options.ssl, "username": options.username, "password": options.password };
   var pcl = new PastyClient(tgt);
   return pcl;
 };
