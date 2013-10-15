@@ -129,7 +129,7 @@ PastyClient.prototype.getItem = function() {
   target = this.target;
   target.uri = "/clipboard/item/"+id;
   var self = this;
-  PastyClient.prototype.HTTPGet(target, authData, function(err, answer) {
+  this.HTTPGet(target, authData, function(err, answer) {
     if(err === null) {
       if(answer.payload) { // Success, we should have the item
         callback(null, answer.payload);
@@ -167,7 +167,7 @@ PastyClient.prototype.deleteItem = function() {
   callback = arguments[arguments.length-1];
   target = this.target;
   target.uri = "/clipboard/item/"+id;
-  PastyClient.prototype.HTTPDelete(target, authData, function(err, answer) {
+  this.HTTPDelete(target, authData, function(err, answer) {
     if(err === null) {
       if(answer.code === 200) { // Success item deleted
         callback(null, true);
@@ -207,7 +207,7 @@ PastyClient.prototype.addItem = function() {
     "item": item }
   target = this.target;
   target.uri = "/clipboard/item";
-  PastyClient.prototype.HTTPPost(target, authData, data, function(err, answer) {
+  this.HTTPPost(target, authData, data, function(err, answer) {
     if(err === null) {
       if(answer.payload) { // Success item added
         callback(null, answer.payload._id);
@@ -235,7 +235,7 @@ PastyClient.prototype.requestToken = function(user, passwd, callback) {
   target = this.target;
   target.uri = "/user/token";
   var self = this;
-  PastyClient.prototype.HTTPGet(target, authData, function(err, answer) {
+  this.HTTPGet(target, authData, function(err, answer) {
     if(err === null) {
       if(answer.payload) { // Success, we should have a token
         // answer.payload should be a token object
@@ -264,7 +264,7 @@ PastyClient.prototype.checkTokenValidity = function(token, callback) {
   target = this.target;
   target.uri = "/user/token/validity";
   var self = this;
-  PastyClient.prototype.HTTPGet(target, authData, function(err, answer) {
+  this.HTTPGet(target, authData, function(err, answer) {
     if(err === null) {
       if(answer.code === 200) { // payload should contain expire value
         if(answer.hasOwnProperty("payload")) {
@@ -301,7 +301,7 @@ PastyClient.prototype.checkTokenValidity = function(token, callback) {
 PastyClient.prototype.checkUsernameAvailable = function(username, callback) {
   target        = this.target;
   target.uri   = "/v2.1/server/user/available?username="+username;
-  PastyClient.prototype.HTTPGet(target, null, function(err, answer) {
+  this.HTTPGet(target, null, function(err, answer) {
     if(err === null) {
       var payload = answer.payload;
       callback(null, payload);
@@ -333,7 +333,7 @@ PastyClient.prototype.getUser = function() {
   callback = arguments[arguments.length-1];
   target = this.target;
   target.uri = "/user";
-  PastyClient.prototype.HTTPGet(target, authData, function(err, answer) {
+  this.HTTPGet(target, authData, function(err, answer) {
     if(err === null) {
       if(answer.code === 200) {
         callback(null, answer.payload);
@@ -366,7 +366,7 @@ PastyClient.prototype.updateUserPassword = function(user, uid, currPasswd, newPa
     'password': currPasswd };
   target = this.target;
   target.uri = "/user/"+uid;
-  PastyClient.prototype.HTTPPut(target, authData, data, function(err, answer) {
+  this.HTTPPut(target, authData, data, function(err, answer) {
     if(err === null) {
       if(answer.code === 200) {
         callback(null, true);
@@ -394,7 +394,7 @@ PastyClient.prototype.deleteUser = function(user, passwd, uid, callback) {
   authData = new Object({'user': user, 'password': passwd });
   target = this.target;
   target.uri = "/user/"+uid
-  PastyClient.prototype.HTTPDelete(target, authData, function(err, answer) {
+  this.HTTPDelete(target, authData, function(err, answer) {
     if(err === null) {
       if(answer.code === 200) {
         callback(null, true);
@@ -438,7 +438,7 @@ PastyClient.prototype.HTTPGet = function(target, authData, callback) {
  */
 PastyClient.prototype.HTTPPost = function(target, authData, data, callback) {
   var method = 'POST';
-  PastyClient.prototype.HTTPRequest(target, method, authData, data, callback);
+  this.HTTPRequest(target, method, authData, data, callback);
 };
 
 
@@ -455,7 +455,7 @@ PastyClient.prototype.HTTPPost = function(target, authData, data, callback) {
  */
 PastyClient.prototype.HTTPPut = function(target, authData, data, callback) {
   var method = 'PUT';
-  PastyClient.prototype.HTTPRequest(target, method, authData, data, callback);
+  this.HTTPRequest(target, method, authData, data, callback);
 };
 
 
@@ -472,7 +472,7 @@ PastyClient.prototype.HTTPPut = function(target, authData, data, callback) {
 PastyClient.prototype.HTTPDelete = function(target, authData, callback) {
   var method = 'DELETE';
   var data = null;
-  PastyClient.prototype.HTTPRequest(target, method, authData, data, callback);
+  this.HTTPRequest(target, method, authData, data, callback);
 };
 
 
@@ -490,12 +490,11 @@ PastyClient.prototype.HTTPDelete = function(target, authData, callback) {
 PastyClient.prototype.HTTPRequest = function(target, method, authData, data, callback) {
   var userAgent = 'pastyclient-browser '+this.__version;
   if(authData === null) authData = {};
-  if(authData.user === null || authData.user === undefined) { 
-  console.log(this.username);authData.user = this.username;}
+  if(authData.user === null || authData.user === undefined) authData.user = this.username;
   if(authData.password === null || authData.password === undefined) authData.password = this.password;
   
   if(authData.user) { // take the authdata and write it into an Basic Authentication object
-    var bAuthData = "Basic " + new Buffer(authData.user + ":" + authData.password).toString("base64");
+    var bAuthData = "Basic " + btoa(authData.user + ":" + authData.password);
   }
 
   var options = {
