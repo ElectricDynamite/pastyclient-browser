@@ -537,9 +537,9 @@ PastyClient.prototype.HTTPRequest = function(target, method, authData, data, cal
       callback(null,data);
     })
     .fail(function(jqxhr, err) {
-      alert("error: "+err);
-      console.dir(jqxhr);
-      callback(err, null);
+      error = jqxhr.responseJSON;
+      error.statusCode = jqxhr.status;
+      callback(error, null);
     })
   
   /*
