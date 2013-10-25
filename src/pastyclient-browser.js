@@ -513,19 +513,15 @@ PastyClient.prototype.HTTPRequest = function(target, method, authData, data, cal
   if(method == "POST") {
     var postData = JSON.stringify(data);
     options.type = 'POST';
-    options.headers['Content-Length'] = Buffer.byteLength(postData);
     options.data = postData;
   } else if(method == "PUT") {
     var postData = JSON.stringify(data);
     options.type = 'PUT';
-    options.headers['Content-Length'] =  Buffer.byteLength(postData);
     options.data = postData;
   } else if (method == "GET") {
     options.type = 'GET';
-    options.headers['Content-Length'] = 0;
   } else if (method == "DELETE") {
     options.type = 'DELETE';
-    options.headers['Content-Length'] = 0;
   }
 
   /*
