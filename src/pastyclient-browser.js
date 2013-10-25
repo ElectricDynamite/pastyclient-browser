@@ -537,7 +537,8 @@ PastyClient.prototype.HTTPRequest = function(target, method, authData, data, cal
       callback(null,data);
     })
     .fail(function(jqxhr, err) {
-      error = jqxhr.responseJSON;
+      error = { "code": "UnknownError", "message": "Unknown error occured"};
+      if(jqxhr.responseJSON != null) error = jqxhr.responseJSON;
       error.statusCode = jqxhr.status;
       callback(error, null);
     })
