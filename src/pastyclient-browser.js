@@ -121,7 +121,7 @@ PastyClient.prototype.getItem = function() {
     authData.user = arguments[1];
     authData.password = arguments[2];
   } else {
-    authData.token = arguments[1];
+    if(typeof(arguments[1]) !== "function") authData.token = arguments[1];
   }
   var id = arguments[0] || undefined;
   if(typeof(arguments[arguments.length-1]) !== "function") throw new Error("Last argument is not a callback function.");
@@ -160,7 +160,7 @@ PastyClient.prototype.deleteItem = function() {
     authData.user = arguments[1];
     authData.password = arguments[2];
   } else {
-    authData.token = arguments[1];
+    if(typeof(arguments[1]) !== "function") authData.token = arguments[1];
   }
   var id = arguments[0] || undefined;
   if(typeof(arguments[arguments.length-1]) !== "function") throw new Error("Last argument is not a callback function.");
