@@ -507,7 +507,6 @@ PastyClient.prototype.HTTPRequest = function(target, method, authData, data, cal
       'cache': false
     }
   }
-  //console.log(bAuthData);
   if(bAuthData !== undefined) options.headers.Authorization = bAuthData;
   //if(authData.token !== undefined && authData.token !== null) options.headers["X-Pasty-Token"] = authData.token;
   if(method == "POST") {
@@ -523,6 +522,10 @@ PastyClient.prototype.HTTPRequest = function(target, method, authData, data, cal
   } else if (method == "DELETE") {
     options.type = 'DELETE';
   }
+  
+  options.dataFilter = function(data, dataType) {
+      return data;
+    };
 
   /*
    * Send the HTTP Request and handle the response (res)
@@ -530,11 +533,28 @@ PastyClient.prototype.HTTPRequest = function(target, method, authData, data, cal
    
   var jqxhr = $.ajax(options)
     .done(function(data, textStatus, jqxhr) {
-      callback(null,data);
+      if(typeof(data) === "object") {
+        callback(null, data);
+      } else {
+        try {
+          answer = $.parseJSON(data);
+          callback(null, answer);
+        } catch (e) {
+          err = { "code": "UnknownError", "message": "Invalid JSON received" };
+          callback(err);
+        }
+      }
     })
-    .fail(function(jqxhr, err) {
+    .fail(function(jqxhr, textStatus, err) {
       error = { "code": "UnknownError", "message": "Unknown error occured"};
-      if(jqxhr.responseJSON != null) error = jqxhr.responseJSON;
+      switch(err) {
+        case "Unauthorized":
+          error = { "code": "UnauthorizedError", "message": "Login failed"};
+          break;
+        default:
+          console.log(err);
+      }
+      if(jqxhr.responseJSON != null && jqxhr.responseJSON != undefined) error = jqxhr.responseJSON;
       error.statusCode = jqxhr.status;
       callback(error, null);
     })
