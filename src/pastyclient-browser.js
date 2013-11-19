@@ -524,8 +524,8 @@ PastyClient.prototype.HTTPRequest = function(target, method, authData, data, cal
   }
   
   options.dataFilter = function(data, dataType) {
-      return data;
-    };
+    return data;
+  };
 
   /*
    * Send the HTTP Request and handle the response (res)
@@ -550,6 +550,9 @@ PastyClient.prototype.HTTPRequest = function(target, method, authData, data, cal
       switch(err) {
         case "Unauthorized":
           error = { "code": "UnauthorizedError", "message": "Login failed"};
+          break;
+        case "Conflict":
+          error = { "code": "ConflictError", "message": "A conflict error occured"};
           break;
         default:
           console.log(err);
